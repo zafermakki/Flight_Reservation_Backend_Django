@@ -2,7 +2,7 @@ from django.db import models
 
     
 class Flight(models.Model):
-    
+    flight_number = models.CharField(max_length=200, unique=True,blank=True,null=True)
     airline = models.CharField(max_length=100)
     
     from_location = models.CharField(max_length=100)
@@ -30,10 +30,3 @@ class Flight(models.Model):
     
     def __str__(self) -> str:
         return f"{self.airline} from {self.from_location} to {self.to_location} on {self.departure_date} at {self.departure_time}"
-    
-class FlightName(models.Model):
-    name = models.CharField(max_length=200)
-    flight = models.OneToOneField(Flight, on_delete=models.CASCADE, related_name="flight_names")
-    
-    def __str__(self) -> str:
-        return f"{self.name} for flight: {self.flight}"
