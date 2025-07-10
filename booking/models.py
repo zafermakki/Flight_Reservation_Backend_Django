@@ -8,17 +8,24 @@ class Booking(models.Model):
         ('business', 'Business'),
         ('first_class', 'First Class'),
     ]
-
-    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name="bookings")
-    passport_name = models.CharField(max_length=100)
-    email = models.EmailField(editable=False)
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ]
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name="bookings",null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='male')
+    date_of_birth = models.DateField(null=True, blank=True)
+    nationality = models.CharField(max_length=50,null=True, blank=True)
+    
+    email = models.EmailField(editable=True)
+    phone_number = models.CharField(max_length=20,null=True, blank=True)
+    
     seats_booked = models.PositiveIntegerField()
     travel_class = models.CharField(max_length=20, choices=CLASS_CHOICES)
-    credit_card_name = models.CharField(max_length=100)
-    credit_card_number = models.CharField(max_length=19)
     booking_date = models.DateTimeField(auto_now_add=True)
+    
 
     def __str__(self):
-        return f"{self.passport_name} on flight {self.flight} ({self.travel_class})"
+        return f"{self.flight} ({self.travel_class})"
 
 
