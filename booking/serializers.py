@@ -58,3 +58,10 @@ class BookingCreateSerializer(serializers.ModelSerializer):
             # إنشاء الحجز
             validated_data['flight'] = flight  # نعيد تعيينه بعد select_for_update
             return Booking.objects.create(**validated_data)
+
+class BookingSerializer(serializers.ModelSerializer):
+    flight = serializers.StringRelatedField()
+    
+    class Meta:
+        model = Booking
+        fields = '__all__'
