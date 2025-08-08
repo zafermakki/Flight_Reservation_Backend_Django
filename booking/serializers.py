@@ -5,6 +5,8 @@ from django.db import transaction
 from .models import Booking
 from flights.models import Flight
 
+from django.core.mail import send_mail
+
 class BookingCreateSerializer(serializers.ModelSerializer):
     flight_id = serializers.PrimaryKeyRelatedField(
         queryset=Flight.objects.all(), source='flight', write_only=True
@@ -57,7 +59,20 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
             # إنشاء الحجز
             validated_data['flight'] = flight  # نعيد تعيينه بعد select_for_update
-            return Booking.objects.create(**validated_data)
+            booking = Booking.objects.create(**validated_data)
+
+            # إرسال رسالة إلى البريد الإلكتروني المدخل
+            email = validated_data.get('email')
+            if email:
+                send_mail(
+                    subject="Booking Confirmation",
+                    message="Your booking was successful! We wish you a pleasant trip.",
+                    from_email=None,  # Use default from settings
+                    recipient_list=[email],
+                    fail_silently=True,
+                )
+
+            return booking
 
 class BookingSerializer(serializers.ModelSerializer):
     flight = serializers.StringRelatedField()
