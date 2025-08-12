@@ -5,3 +5,6 @@ class FlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Flight
         fields = "__all__"
+
+class LocationSerializer(serializers.Serializer):
+    location = serializers.CharField()

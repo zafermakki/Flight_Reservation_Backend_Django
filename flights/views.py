@@ -1,9 +1,9 @@
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q
-from rest_framework.decorators import APIView
+from rest_framework.views import APIView
 from .models import Flight
-from .serializers import FlightSerializer
+from .serializers import FlightSerializer, LocationSerializer
 
 class SearchFlightsView(APIView):
     def get(self, request):
@@ -45,3 +45,15 @@ class FlightDetailView(APIView):
             return Response(serializer.data, status=200)
         except Flight.DoesNotExist:
             return Response({"error": "Flight not found"}, status=404)
+
+class FromLocationView(APIView):
+    def get(self, request):
+        locations = Flight.objects.values_list('from_location', flat=True).distinct()
+        serializer = LocationSerializer([{'location': loc} for loc in locations], many=True)
+        return Response(serializer.data)
+
+class ToLocationView(APIView):
+    def get(self, request):
+        locations = Flight.objects.values_list('to_location', flat=True).distinct()
+        serializer = LocationSerializer([{'location': loc} for loc in locations], many=True)
+        return Response(serializer.data)
