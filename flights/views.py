@@ -1,41 +1,40 @@
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 from rest_framework import status
 from django.db.models import Q
 from rest_framework.views import APIView
 from .models import Flight
 from .serializers import FlightSerializer, LocationSerializer
 
-class SearchFlightsView(APIView):
-    def get(self, request):
-        from_location = request.GET.get('from_location')
-        to_location = request.GET.get('to_location')
-        start_date = request.GET.get('start_date')
-        end_date = request.GET.get('end_date')
-        
-        if not from_location or not to_location:
-            return Response(
-                {'error': 'Please provide both from_location and to_location'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+@api_view(['GET'])
+def SearchFlightsView(request):
+    flight_number = request.query_params.get('flight_number')
+    from_location = request.query_params.get('from_location')
+    to_location = request.query_params.get('to_location')
+    start_date = request.query_params.get('start_date')
+    end_date = request.query_params.get('end_date')
 
-        flights = Flight.objects.filter(
-            from_location__icontains=from_location,
-            to_location__icontains=to_location
-        )
-
-        if start_date and end_date:
-            flights = flights.filter(
-                departure_date__range=[start_date, end_date]
-            )
-
+    # بحث برقم الرحلة إذا تم إدخاله
+    if flight_number:
+        flights = Flight.objects.filter(flight_number__iexact=flight_number)
         if not flights.exists():
-            return Response(
-                {'message': 'No flights found for the specified criteria'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"message": "there is no trip with this number"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(FlightSerializer(flights, many=True).data)
 
-        serializer = FlightSerializer(flights, many=True)
-        return Response(serializer.data)
+    # البحث بالطريقة القديمة
+    if not (from_location and to_location and start_date and end_date):
+        return Response({"error": "please enter all fields or put the number of the trip"}, status=status.HTTP_400_BAD_REQUEST)
+
+    flights = Flight.objects.filter(
+        from_location__iexact=from_location,
+        to_location__iexact=to_location,
+        departure_date__range=[start_date, end_date]
+    )
+    if not flights.exists():
+        return Response({"message": "there is no trips with this details"}, status=status.HTTP_404_NOT_FOUND)
+
+    return Response(FlightSerializer(flights, many=True).data)
+
     
 class FlightDetailView(APIView):
     def get(self, request, id):
@@ -57,3 +56,4 @@ class ToLocationView(APIView):
         locations = Flight.objects.values_list('to_location', flat=True).distinct()
         serializer = LocationSerializer([{'location': loc} for loc in locations], many=True)
         return Response(serializer.data)
+
